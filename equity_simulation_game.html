@@ -1,0 +1,242 @@
+<html>
+<head>
+<style>
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--surface-0); }
+* { box-sizing: border-box; }
+.container { max-width: 900px; margin: 0 auto; padding: 20px; }
+.header { text-align: center; margin-bottom: 30px; }
+.header h1 { margin: 0 0 8px; font-size: 28px; color: var(--text-primary); }
+.header p { margin: 0; color: var(--text-secondary); font-size: 14px; }
+.wallet { display: inline-block; background: var(--surface-1); border: 0.5px solid var(--border); padding: 12px 20px; border-radius: var(--radius); font-size: 14px; margin-top: 16px; color: var(--text-primary); }
+.wallet strong { color: var(--text-accent); }
+.game-state { text-align: center; margin-bottom: 24px; padding: 12px; background: var(--bg-accent); color: var(--text-accent); border-radius: var(--radius); font-size: 14px; }
+.companies-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 30px; }
+.company-card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 16px; }
+.company-name { font-size: 16px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+.price-display { font-size: 24px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+.price-change { font-size: 12px; margin-bottom: 12px; }
+.price-up { color: var(--text-success); }
+.price-down { color: var(--text-danger); }
+.metrics { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px; }
+.actions { display: flex; gap: 8px; }
+input[type="number"] { width: 60px; padding: 6px; border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 12px; }
+button { padding: 8px 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); background: transparent; cursor: pointer; font-size: 13px; color: var(--text-primary); transition: all 0.2s; }
+button:hover { background: var(--surface-1); }
+.buy-btn { color: var(--text-success); border-color: var(--border-success); }
+.buy-btn:hover { background: var(--bg-success); color: var(--text-success); }
+.sell-btn { color: var(--text-danger); border-color: var(--border-danger); }
+.sell-btn:hover { background: var(--bg-danger); color: var(--text-danger); }
+.leaderboard { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 30px; }
+.leaderboard h3 { margin: 0 0 16px; font-size: 16px; color: var(--text-primary); }
+.leaderboard-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.leaderboard-table tr { border-bottom: 0.5px solid var(--border); }
+.leaderboard-table td { padding: 10px 8px; text-align: left; }
+.leaderboard-table td:nth-child(2), .leaderboard-table td:nth-child(3), .leaderboard-table td:nth-child(4) { text-align: right; }
+.rank { font-weight: 500; color: var(--text-primary); width: 30px; }
+.player-name { color: var(--text-primary); }
+.portfolio-value { color: var(--text-primary); font-weight: 500; }
+.portfolio-return { font-weight: 500; }
+.return-positive { color: var(--text-success); }
+.return-negative { color: var(--text-danger); }
+.control-panel { background: var(--surface-1); border: 0.5px solid var(--border-strong); border-radius: 12px; padding: 20px; margin-top: 30px; }
+.control-panel h3 { margin: 0 0 16px; font-size: 16px; color: var(--text-primary); }
+.scenario-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.scenario-btn { padding: 12px; border: 0.5px solid var(--border-strong); border-radius: var(--radius); background: transparent; cursor: pointer; color: var(--text-primary); font-size: 13px; transition: all 0.2s; font-weight: 500; }
+.scenario-btn:hover { background: var(--surface-2); border-color: var(--border-stronger); }
+.scenario-btn.active { background: var(--fill-accent); color: var(--on-accent); border-color: var(--fill-accent); }
+.instructions { font-size: 12px; color: var(--text-secondary); margin-top: 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Sector Showdown</h1>
+    <p>IT & AI Services Investment Game</p>
+    <div class="wallet">Player ID: <input id="playerName" type="text" placeholder="Enter name" style="width: 100px; padding: 4px 8px; border: 0.5px solid var(--border); border-radius: 4px; font-size: 12px;" maxlength="20">
+    <strong style="margin-left: 20px;">Capital: ₹<span id="capital">100</span></strong></div>
+  </div>
+
+  <div class="game-state" id="gameState">Round 1: Initial Investment</div>
+
+  <div class="companies-grid" id="companiesGrid"></div>
+
+  <div class="leaderboard">
+    <h3>Leaderboard</h3>
+    <table class="leaderboard-table">
+      <thead>
+        <tr style="border-bottom: 0.5px solid var(--border-strong);">
+          <td style="width: 30px; font-weight: 500; color: var(--text-secondary);">Rank</td>
+          <td style="font-weight: 500; color: var(--text-secondary);">Player</td>
+          <td style="text-align: right; font-weight: 500; color: var(--text-secondary);">Portfolio</td>
+          <td style="text-align: right; font-weight: 500; color: var(--text-secondary);">Return</td>
+        </tr>
+      </thead>
+      <tbody id="leaderboardBody"></tbody>
+    </table>
+  </div>
+
+  <div class="control-panel">
+    <h3>Host Controls</h3>
+    <div class="scenario-buttons">
+      <button class="scenario-btn" onclick="startGame()">🎮 Start Game</button>
+      <button class="scenario-btn" onclick="triggerScenario(1)">📊 Scenario 1</button>
+      <button class="scenario-btn" onclick="triggerScenario(2)">📱 Scenario 2</button>
+      <button class="scenario-btn" onclick="triggerScenario(3)">🔄 Scenario 3</button>
+      <button class="scenario-btn" onclick="resetGame()">↺ Reset Game</button>
+    </div>
+    <div class="instructions" style="margin-top: 20px;">
+      <strong>How to play:</strong> Each player has ₹100 and can buy/sell shares. Click "Start Game" to begin, then trigger scenarios to watch prices change. Highest portfolio value wins!
+    </div>
+  </div>
+</div>
+
+<script>
+const companies = [
+  { id: 1, name: 'TechCorp', basePrice: 50, metric1: 'Profit growth: 15%', metric2: 'Market share: 22%', currentPrice: 50 },
+  { id: 2, name: 'AIInnovate', basePrice: 60, metric1: 'Profit growth: 45%', metric2: 'Market share: 8%', currentPrice: 60 },
+  { id: 3, name: 'CloudServe', basePrice: 40, metric1: 'Profit growth: 25%', metric2: 'Market share: 15%', currentPrice: 40 }
+];
+
+const scenarios = [
+  { name: 'New Competitor Enters', effects: { 1: 0.95, 2: 0.92, 3: 0.98 } },
+  { name: 'Sector Grows 20%', effects: { 1: 1.18, 2: 1.25, 3: 1.15 } },
+  { name: 'Regulatory Changes', effects: { 1: 1.08, 2: 0.90, 3: 1.12 } }
+];
+
+let players = {};
+let currentRound = 0;
+let gameActive = false;
+
+function initPlayer(name) {
+  if (!players[name]) {
+    players[name] = { capital: 100, holdings: { 1: 0, 2: 0, 3: 0 }, name: name };
+  }
+  return players[name];
+}
+
+function getPlayerName() {
+  const name = document.getElementById('playerName').value.trim() || 'Player ' + Object.keys(players).length;
+  return name;
+}
+
+function updateDisplay() {
+  renderCompanies();
+  updateLeaderboard();
+  updateCapital();
+}
+
+function renderCompanies() {
+  const grid = document.getElementById('companiesGrid');
+  grid.innerHTML = companies.map(company => {
+    const player = initPlayer(getPlayerName());
+    const holdings = player.holdings[company.id] || 0;
+    const portfolioValue = holdings * company.currentPrice;
+    return `
+      <div class="company-card">
+        <div class="company-name">${company.name}</div>
+        <div class="price-display">₹${company.currentPrice}</div>
+        <div class="metrics">${company.metric1}<br>${company.metric2}</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">You own: <strong>${holdings} shares</strong> (₹${portfolioValue})</div>
+        <div class="actions">
+          <input type="number" id="qty-${company.id}" value="1" min="1">
+          <button class="buy-btn" onclick="buyShares(${company.id})">Buy</button>
+          <button class="sell-btn" onclick="sellShares(${company.id})">Sell</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function buyShares(companyId) {
+  const playerName = getPlayerName();
+  const player = initPlayer(playerName);
+  const qty = parseInt(document.getElementById(`qty-${companyId}`).value) || 0;
+  const cost = qty * companies.find(c => c.id === companyId).currentPrice;
+  
+  if (cost <= player.capital) {
+    player.capital -= cost;
+    player.holdings[companyId] += qty;
+    updateDisplay();
+  } else {
+    alert('Not enough capital!');
+  }
+}
+
+function sellShares(companyId) {
+  const playerName = getPlayerName();
+  const player = initPlayer(playerName);
+  const qty = parseInt(document.getElementById(`qty-${companyId}`).value) || 0;
+  
+  if (qty <= player.holdings[companyId]) {
+    const proceeds = qty * companies.find(c => c.id === companyId).currentPrice;
+    player.capital += proceeds;
+    player.holdings[companyId] -= qty;
+    updateDisplay();
+  } else {
+    alert('You don\'t own that many shares!');
+  }
+}
+
+function updateCapital() {
+  const playerName = getPlayerName();
+  const player = initPlayer(playerName);
+  document.getElementById('capital').textContent = Math.round(player.capital);
+}
+
+function updateLeaderboard() {
+  const tbody = document.getElementById('leaderboardBody');
+  const rankings = Object.values(players).map(p => {
+    const portfolioValue = p.capital + Object.entries(p.holdings).reduce((sum, [cId, qty]) => {
+      return sum + (qty * companies.find(c => c.id == cId).currentPrice);
+    }, 0);
+    return { ...p, portfolioValue, returnAmount: portfolioValue - 100 };
+  }).sort((a, b) => b.portfolioValue - a.portfolioValue);
+
+  tbody.innerHTML = rankings.map((p, i) => `
+    <tr>
+      <td class="rank">${i + 1}</td>
+      <td class="player-name">${p.name}</td>
+      <td class="portfolio-value">₹${Math.round(p.portfolioValue)}</td>
+      <td class="portfolio-return ${p.returnAmount >= 0 ? 'return-positive' : 'return-negative'}">
+        ${p.returnAmount >= 0 ? '+' : ''}₹${Math.round(p.returnAmount)}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function startGame() {
+  gameActive = true;
+  currentRound = 1;
+  document.getElementById('gameState').textContent = 'Round 1: Initial Investment - Buy your first shares!';
+  updateDisplay();
+}
+
+function triggerScenario(scenarioNum) {
+  if (scenarioNum > 3) return;
+  const scenario = scenarios[scenarioNum - 1];
+  
+  companies.forEach(company => {
+    const multiplier = scenario.effects[company.id] || 1;
+    company.currentPrice = Math.round(company.currentPrice * multiplier * 100) / 100;
+  });
+  
+  currentRound = scenarioNum + 1;
+  document.getElementById('gameState').textContent = `Scenario ${scenarioNum}: ${scenario.name}`;
+  
+  updateDisplay();
+}
+
+function resetGame() {
+  companies.forEach(c => c.currentPrice = c.basePrice);
+  players = {};
+  currentRound = 0;
+  gameActive = false;
+  document.getElementById('playerName').value = '';
+  document.getElementById('gameState').textContent = 'Round 0: Click "Start Game" to begin';
+  updateDisplay();
+}
+
+updateDisplay();
+</script>
+</body>
+</html>
